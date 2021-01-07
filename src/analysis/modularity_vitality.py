@@ -61,12 +61,16 @@ def newMods(g, part):
 
     internal_deg = node_deg_by_group[index, membership].transpose() - degrees
 
+    starCenter = (degrees == m)
+    degrees[starCenter] = 0  # temp replacement avoid division by 0
+
     q1_links = (internal_edges - internal_deg) / (m - degrees)
     # expanding out (group_degs - node_deg_by_group)^2 is slightly faster:
     expected_impact = np.power(group_degs, 2).sum() - 2 * (node_deg_by_group * group_degs.transpose()) +\
         node_deg_by_group.multiply(node_deg_by_group).sum(1)
     q1_degrees = expected_impact / (4 * (m - degrees)**2)
     q1s = q1_links - q1_degrees
+    q1s[starCenter] = 0
     q1s = np.array(q1s).flatten()
     return q1s
 
