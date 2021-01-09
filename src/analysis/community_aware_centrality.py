@@ -2,13 +2,15 @@ import numpy as np
 import src.analysis.modularity_vitality as mv
 
 
-def getInternalExternalDegrees(g, part):
+def getInternalExternalDegrees(g, part, loops=True):
     rows = list(range(g.vcount()))
     cols = part.membership
     A = mv.getSparseA(g)
     group_ind = mv.getGroupIndicator(g, cols, rows)
     node_deg_by_group = A * group_ind
-    internal_degrees = node_deg_by_group[rows, cols] + A.diagonal()
+    internal_degrees = node_deg_by_group[rows, cols]
+    if loops:
+        internal_degrees += A.diagonal()
     external_degrees = node_deg_by_group.sum(1).transpose() - node_deg_by_group[rows, cols]
     internal_degrees = np.array(internal_degrees).flatten()
     external_degrees = np.array(external_degrees).flatten()
@@ -17,9 +19,10 @@ def getInternalExternalDegrees(g, part):
 
 def getGroupFraction(g, part):
     internal_degrees, external_degrees = getInternalExternalDegrees(g, part)
-    internal_fraction = internal_degrees / (internal_degrees + external_degrees)
     group_ind = mv.getGroupIndicator(g, part.membership)
-    group_fraction = internal_fraction * group_ind
+    # internal_fraction = internal_degrees / (internal_degrees + external_degrees)
+    # group_fraction = internal_fraction * group_ind
+    group_fraction = (internal_degrees * group_ind) / ((internal_degrees + external_degrees) * group_ind)
     return group_fraction
 
 
@@ -58,13 +61,13 @@ def masuda(g, part):
 
 
 def community_hub_bridge(g, part):
-    internal_degrees, external_degrees = getInternalExternalDegrees(g, part)
+    internal_degrees, external_degrees = getInternalExternalDegrees(g, part, False)
     A = mv.getSparseA(g)
     group_ind = mv.getGroupIndicator(g, part.membership)
     node_deg_by_group = A * group_ind
     b_c = np.array((node_deg_by_group != 0).sum(1) - 1).flatten()
     c_k = [len(comm) for comm in part]
-    c_k_vec = [c_k[i] for i in part.membership]
+    c_k_vec = np.array([c_k[i] for i in part.membership])
     chb = c_k_vec * internal_degrees + b_c * external_degrees
     chb = chb.tolist()
     return chb

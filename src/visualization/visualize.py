@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 
 
-def fragFigs(net_name, results, abbrv=None, legend=False):
+def fragFigs(net_name, results, attackType='Initial', abbrv=None, legend=False):
     plt.figure(0)
     ax1 = plt.subplot(111)
     plt.figure(1)
@@ -20,7 +20,7 @@ def fragFigs(net_name, results, abbrv=None, legend=False):
         plt.plot(rho_e, sigma, label=function_name)
 
     plt.figure(0)
-    plt.title('Initial Attack on ' + net_name, fontsize=16)
+    plt.title(attackType + ' Attack on ' + net_name, fontsize=16)
     plt.ylabel(r'$\sigma$', fontsize=16)
     plt.xlabel(r'$\rho$', fontsize=16)
     ax1.spines["top"].set_visible(False)
@@ -38,8 +38,8 @@ def fragFigs(net_name, results, abbrv=None, legend=False):
     plt.figure(1)
     if legend:
         plt.legend(fontsize=14)
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=14)
-    plt.title('Initial Attack on ' + net_name, fontsize=16)
+        plt.legend(loc='center left', bbox_to_anchor=(.65, .62), fontsize=14)
+    plt.title(attackType + ' Attack on ' + net_name, fontsize=16)
     plt.ylabel(r'$\sigma$', fontsize=16)
     plt.xlabel(r'$\eta$', fontsize=16)
 
