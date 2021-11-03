@@ -57,7 +57,7 @@ scipy==1.5.4
 seaborn==0.11.1
 Send2Trash==1.5.0
 six==1.15.0
--e git+git@github.com:tmagelinski/modularity_vitality.git@ac55c224b463b7a58281fd54e06cf53b29fcb9f0#egg=src
+-e git+git@github.com:tmagelinski/modularity_vitality.git@1583b2f2b5775cc1c560e8991f5b156362e5e71f#egg=src
 terminado==0.9.2
 testpath==0.4.4
 texttable==1.6.3
