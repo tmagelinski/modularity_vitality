@@ -1,4 +1,4 @@
-modularity_vitality
+Modularity Vitality
 ==============================
 
 Materials for "Measuring Node Contribution to Community Structure with Modularity Vitality" ([paper here](https://arxiv.org/abs/2003.00056v3))
