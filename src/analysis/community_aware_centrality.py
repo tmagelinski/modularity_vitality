@@ -18,11 +18,15 @@ def getInternalExternalDegrees(g, part, loops=True):
 
 
 def getGroupFraction(g, part):
-    internal_degrees, external_degrees = getInternalExternalDegrees(g, part)
+    internal_degrees, external_degrees = getInternalExternalDegrees(g, part, False)
     group_ind = mv.getGroupIndicator(g, part.membership)
     # internal_fraction = internal_degrees / (internal_degrees + external_degrees)
     # group_fraction = internal_fraction * group_ind
-    group_fraction = (internal_degrees * group_ind) / ((internal_degrees + external_degrees) * group_ind)
+    numerator = internal_degrees * group_ind
+    denominator = (internal_degrees + external_degrees) * group_ind
+    numerator[denominator == 0] = 0
+    denominator[denominator == 0] = 1
+    group_fraction = numerator / denominator
     return group_fraction
 
 
@@ -44,7 +48,12 @@ def masuda(g, part):
     for edge in group_G.es:
         if edge.is_loop():
             edge['weight'] = 0
-    group_eigs, group_lambda = group_G.eigenvector_centrality(return_eigenvalue=True, weights='weight')
+    try:
+        group_eigs, group_lambda = group_G.eigenvector_centrality(return_eigenvalue=True, weights='weight')
+    except:
+        return [0] * g.vcount()
+    if group_lambda == 0:
+        return [0] * g.vcount()
 
     A = mv.getSparseA(g)
     rows = list(range(g.vcount()))
@@ -74,7 +83,7 @@ def community_hub_bridge(g, part):
 
 
 def weighted_modular_centrality_degree(g, part):
-    internal_degrees, external_degrees = getInternalExternalDegrees(g, part)
+    internal_degrees, external_degrees = getInternalExternalDegrees(g, part, False)
     mu_c = getGroupFraction(g, part)
     group_ind = mv.getGroupIndicator(g, part.membership)
     node_mu = group_ind * mu_c.transpose()
@@ -84,7 +93,7 @@ def weighted_modular_centrality_degree(g, part):
 
 
 def adjusted_modular_centrality_degree(g, part):
-    internal_degrees, external_degrees = getInternalExternalDegrees(g, part)
+    internal_degrees, external_degrees = getInternalExternalDegrees(g, part, False)
     mu_c = getGroupFraction(g, part)
     group_ind = mv.getGroupIndicator(g, part.membership)
     node_mu = group_ind * mu_c.transpose()
@@ -98,3 +107,33 @@ def degree(g, part):
         return g.strength(weights='weight')
     else:
         return g.degree()
+
+
+def community_degree(g, part):
+    # if g.is_weighted():
+    #     weight_key = 'weight'
+    # else:
+    #     weight_key = None
+    index = list(range(g.vcount()))
+    membership = part.membership
+
+    # m = sum(g.strength(weights=weight_key)) / 2
+    A = mv.getSparseA(g)
+    m = (A.sum() + A.diagonal().sum()) / 2
+
+    group_indicator_mat = mv.getGroupIndicator(g, membership, rows=index)
+    node_deg_by_group = A * group_indicator_mat
+
+    degrees, deg_mat = mv.getDegMat(node_deg_by_group, index, membership)
+    node_deg_by_group += deg_mat
+
+    group_degs = (deg_mat + mv.diags(A.diagonal()) * group_indicator_mat).sum(0)
+
+    starCenter = (degrees == m)
+    degrees[starCenter] = 0  # temp replacement avoid division by 0
+
+    # expanding out (group_degs - n_groups)^2 is faster:
+    expected_impact = np.power(group_degs, 2).sum() + 2 * (node_deg_by_group * group_degs.transpose()) +\
+        node_deg_by_group.multiply(node_deg_by_group).sum(1)
+    cd = expected_impact / (4 * (m - degrees)**2)
+    return np.array(cd).flatten().tolist()

@@ -1,3 +1,11 @@
+#
+references/
+data/
+reports/
+*Bipartite_Testing.ipynb
+*bipartite_modularity_vitalities.py
+*.eps
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
